@@ -66,7 +66,3 @@ This project is a image host built with Node.js and Express. It allows users to 
 ## Usage
 
 You can use tools like Postman or cURL to test the API endpoints. For uploading images, make sure to set the request type to `POST` and include the image file in the form-data.
-
-## License
-
-This project is licensed under the MIT License.
