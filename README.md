@@ -1,6 +1,6 @@
 # Image Hosting App
 
-This project is a simple image hosting application built with Node.js and Express. It allows users to upload images, which are stored in MongoDB using GridFS. The application provides a RESTful API for uploading, retrieving, listing, and deleting images.
+This project is a image host built with Node.js and Express. It allows users to upload images, which are stored in MongoDB using GridFS. The application provides a RESTful API for uploading, retrieving, listing, and deleting images.
 
 ## Features
 
