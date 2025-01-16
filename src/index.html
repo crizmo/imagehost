@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Hosting App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin: 20px 0;
+        }
+        input[type="file"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin: 20px 0;
+            color: green;
+        }
+        #images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .image-item {
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .image-item button {
+            margin: 5px;
+        }
+        .image-item .delete-button {
+            background-color: #dc3545;
+        }
+        .image-item .delete-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="image" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+    <h2>Hosted Images</h2>
+    <div id="images"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            const imageFile = document.getElementById('image').files[0];
+            formData.append('image', imageFile);
+
+            try {
+                const response = await fetch('/api/images/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                const fullUrl = `${window.location.origin}${result.url}`;
+                document.getElementById('result').innerHTML = `<p>Image URL: <a href="${fullUrl}" target="_blank">${fullUrl}</a></p>`;
+                loadImages();
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                document.getElementById('result').innerHTML = `<p>Error uploading image</p>`;
+            }
+        });
+
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/images');
+                const images = await response.json();
+                const imagesContainer = document.getElementById('images');
+                imagesContainer.innerHTML = '';
+                images.forEach(image => {
+                    const imageUrl = `${window.location.origin}/api/images/${image.filename}`;
+                    const imageElement = document.createElement('div');
+                    imageElement.classList.add('image-item');
+                    imageElement.innerHTML = `
+                        <img src="${imageUrl}" alt="${image.filename}">
+                        <p>${image.filename}</p>
+                        <button onclick="openImage('${imageUrl}')">Open Image</button>
+                        <button onclick="copyUrl('${imageUrl}')">Copy URL</button>
+                        <button class="delete-button" onclick="deleteImage('${image.filename}')">Delete</button>
+                    `;
+                    imagesContainer.appendChild(imageElement);
+                });
+            } catch (error) {
+                console.error('Error loading images:', error);
+            }
+        }
+
+        function openImage(url) {
+            window.open(url, '_blank');
+        }
+
+        function copyUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard');
+            }).catch(err => {
+                console.error('Error copying URL:', err);
+            });
+        }
+
+        async function deleteImage(filename) {
+            try {
+                await fetch(`/api/images/${filename}`, {
+                    method: 'DELETE'
+                });
+                loadImages();
+            } catch (error) {
+                console.error('Error deleting image:', error);
+            }
+        }
+
+        // Load images on page load
+        loadImages();
+    </script>
+</body>
+</html>
